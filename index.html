@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小任务家 - 儿童每日计划</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // 配置Tailwind自定义颜色和字体
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B6B',
+                        secondary: '#4ECDC4',
+                        accent: '#FFD166',
+                        light: '#F7FFF7',
+                        dark: '#292F36'
+                    },
+                    fontFamily: {
+                        comic: ['Comic Sans MS', 'cursive', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-light to-blue-50 min-h-screen font-comic text-dark">
+    <!-- 导航栏 -->
+    <nav id="mainNav" class="bg-white/80 backdrop-blur-md shadow-md fixed w-full top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-star text-accent text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-primary">小小任务家</h1>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="#today" class="nav-link hover:text-primary transition-colors">今日任务</a>
+                <a href="#weekly" class="nav-link hover:text-primary transition-colors">每周计划</a>
+                <a href="#rewards" class="nav-link hover:text-primary transition-colors">兑换中心</a>
+                <a href="#history" class="nav-link hover:text-primary transition-colors">星星记录</a>
+                <button id="adminBtn" class="text-sm px-3 py-1 bg-dark/10 rounded-full hover:bg-dark/20 transition-colors">
+                    <i class="fa fa-lock mr-1"></i>管理员
+                </button>
+            </div>
+            
+            <div class="flex items-center md:hidden">
+                <span class="mr-3 bg-accent/20 px-2 py-1 rounded-full text-sm">
+                    <i class="fa fa-star text-accent"></i>
+                    <span id="mobileStars">0</span>
+                </span>
+                <button id="menuToggle" class="text-dark p-2">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="#today" class="py-2 hover:text-primary transition-colors">今日任务</a>
+                <a href="#weekly" class="py-2 hover:text-primary transition-colors">每周计划</a>
+                <a href="#rewards" class="py-2 hover:text-primary transition-colors">兑换中心</a>
+                <a href="#history" class="py-2 hover:text-primary transition-colors">星星记录</a>
+                <button id="mobileAdminBtn" class="py-2 text-left hover:text-primary transition-colors">
+                    <i class="fa fa-lock mr-1"></i>管理员
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="container mx-auto px-4 pt-24 pb-16">
+        <!-- 星星数量显示 -->
+        <div class="bg-white rounded-xl shadow-lg p-4 mb-8 flex justify-between items-center">
+            <div>
+                <h2 class="text-lg text-dark/70">我的星星总数</h2>
+                <div class="flex items-center mt-1">
+                    <span id="totalStars" class="text-3xl font-bold text-primary">0</span>
+                    <i class="fa fa-star text-accent text-2xl ml-2"></i>
+                </div>
+            </div>
+            <div class="bg-accent/10 p-3 rounded-full">
+                <i class="fa fa-trophy text-3xl text-accent"></i>
+            </div>
+        </div>
+
+        <!-- 今日任务 -->
+        <section id="today" class="mb-16">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-dark flex items-center">
+                    <i class="fa fa-sun-o text-accent mr-2"></i>今日任务
+                    <span id="todayDate" class="ml-2 text-base font-normal text-dark/60"></span>
+                </h2>
+            </div>
+            
+            <div id="todayTasks" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 今日任务将通过JS动态生成 -->
+                <div class="col-span-full text-center py-12 bg-white/50 rounded-xl">
+                    <i class="fa fa-calendar-o text-5xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-400">加载任务中...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 每周计划 -->
+        <section id="weekly" class="mb-16">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-dark flex items-center">
+                    <i class="fa fa-calendar text-secondary mr-2"></i>每周计划
+                </h2>
+                <button id="addWeeklyTaskBtn" class="admin-action hidden bg-primary text-white px-4 py-2 rounded-full hover:bg-primary/90 transition-colors flex items-center">
+                    <i class="fa fa-plus mr-1"></i> 添加任务
+                </button>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-4 overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-7 gap-2">
+                    <!-- 星期标题 -->
+                    <div class="text-center font-bold p-2 bg-dark/5 rounded-lg">周日</div>
+                    <div class="text-center font-bold p-2 bg-dark/5 rounded-lg">周一</div>
+                    <div class="text-center font-bold p-2 bg-dark/5 rounded-lg">周二</div>
+                    <div class="text-center font-bold p-2 bg-dark/5 rounded-lg">周三</div>
+                    <div class="text-center font-bold p-2 bg-dark/5 rounded-lg">周四</div>
+                    <div class="text-center font-bold p-2 bg-dark/5 rounded-lg">周五</div>
+                    <div class="text-center font-bold p-2 bg-dark/5 rounded-lg">周六</div>
+                    
+                    <!-- 每周任务将通过JS动态生成 -->
+                    <div class="md:col-span-7 text-center py-8 text-gray-400">
+                        加载每周计划中...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 兑换中心 -->
+        <section id="rewards" class="mb-16">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-dark flex items-center">
+                    <i class="fa fa-gift text-accent mr-2"></i>兑换中心
+                </h2>
+                <button id="addRewardBtn" class="admin-action hidden bg-primary text-white px-4 py-2 rounded-full hover:bg-primary/90 transition-colors flex items-center">
+                    <i class="fa fa-plus mr-1"></i> 添加奖品
+                </button>
+            </div>
+            
+            <div id="rewardsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 兑换商品将通过JS动态生成 -->
+                <div class="col-span-full text-center py-12 bg-white/50 rounded-xl">
+                    <i class="fa fa-gift text-5xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-400">加载奖品中...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 星星记录 -->
+        <section id="history" class="mb-16">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-dark flex items-center">
+                    <i class="fa fa-history text-secondary mr-2"></i>星星记录
+                </h2>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-4">
+                <div id="starsHistory" class="space-y-3">
+                    <!-- 星星记录将通过JS动态生成 -->
+                    <div class="text-center py-12 text-gray-400">
+                        暂无记录
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 管理员登录模态框 -->
+    <div id="adminModal" class="fixed inset-0 bg-dark/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <div class="text-center mb-4">
+                <i class="fa fa-lock text-4xl text-primary"></i>
+                <h3 class="text-xl font-bold mt-2">管理员登录</h3>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm mb-1">请输入管理员密码</label>
+                <input type="password" id="adminPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            
+            <div class="flex space-x-3">
+                <button id="loginAdminBtn" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">登录</button>
+                <button id="closeAdminModalBtn" class="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300 transition-colors">取消</button>
+            </div>
+            
+            <div id="adminError" class="text-red-500 text-sm mt-3 text-center hidden">密码错误，请重试</div>
+        </div>
+    </div>
+
+    <!-- 添加任务模态框 -->
+    <div id="addTaskModal" class="fixed inset-0 bg-dark/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 class="text-xl font-bold mb-4">添加每周任务</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm mb-1">任务名称</label>
+                    <input type="text" id="taskName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <div>
+                    <label class="block text-sm mb-1">星期</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="taskDays" value="0" class="mr-2"> 周日
+                        </label>
+                        <label class="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="taskDays" value="1" class="mr-2"> 周一
+                        </label>
+                        <label class="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="taskDays" value="2" class="mr-2"> 周二
+                        </label>
+                        <label class="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="taskDays" value="3" class="mr-2"> 周三
+                        </label>
+                        <label class="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="taskDays" value="4" class="mr-2"> 周四
+                        </label>
+                        <label class="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="taskDays" value="5" class="mr-2"> 周五
+                        </label>
+                        <label class="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 col-span-3">
+                            <input type="checkbox" name="taskDays" value="6" class="mr-2"> 周六
+                        </label>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm mb-1">奖励星星数</label>
+                    <input type="number" id="taskStars" min="1" max="10" value="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <div>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="taskRecurring" checked class="mr-2">
+                        <span>每周循环</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-6">
+                <button id="saveTaskBtn" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">保存</button>
+                <button id="closeTaskModalBtn" class="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300 transition-colors">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加奖品模态框 -->
+    <div id="addRewardModal" class="fixed inset-0 bg-dark/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 class="text-xl font-bold mb-4">添加兑换奖品</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm mb-1">奖品名称</label>
+                    <input type="text" id="rewardName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <div>
+                    <label class="block text-sm mb-1">所需星星数</label>
+                    <input type="number" id="rewardStars" min="1" value="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-6">
+                <button id="saveRewardBtn" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">保存</button>
+                <button id="closeRewardModalBtn" class="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300 transition-colors">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理员调整星星模态框 -->
+    <div id="adjustStarsModal" class="fixed inset-0 bg-dark/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 class="text-xl font-bold mb-4">调整星星数量</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm mb-1">当前星星数: <span id="currentStarsDisplay">0</span></label>
+                    <input type="number" id="newStarsCount" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <div>
+                    <label class="block text-sm mb-1">调整原因</label>
+                    <input type="text" id="starsAdjustReason" placeholder="例如：额外奖励" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-6">
+                <button id="saveStarsAdjustBtn" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">保存</button>
+                <button id="closeStarsAdjustModalBtn" class="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300 transition-colors">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 完成任务动画 -->
+    <div id="celebration" class="fixed inset-0 pointer-events-none z-50 hidden">
+        <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-5xl text-accent animate-bounce">
+                <i class="fa fa-star"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数据模型和存储管理
+        const DataManager = {
+            // 默认管理员密码
+            DEFAULT_ADMIN_PASSWORD: 'admin123',
+            
+            // 初始化数据
+            init() {
+                if (!localStorage.getItem('weeklyTasks')) {
+                    localStorage.setItem('weeklyTasks', JSON.stringify([]));
+                }
+                
+                if (!localStorage.getItem('rewards')) {
+                    localStorage.setItem('rewards', JSON.stringify([]));
+                }
+                
+                if (!localStorage.getItem('starsHistory')) {
+                    localStorage.setItem('starsHistory', JSON.stringify([]));
+                }
+                
+                if (!localStorage.getItem('totalStars')) {
+                    localStorage.setItem('totalStars', '0');
+                }
+                
+                if (!localStorage.getItem('adminPassword')) {
+                    localStorage.setItem('adminPassword', this.DEFAULT_ADMIN_PASSWORD);
+                }
+                
+                // 添加一些示例数据（首次使用）
+                if (JSON.parse(localStorage.getItem('weeklyTasks')).length === 0) {
+                    const demoTasks = [
+                        {
+                            id: Date.now() - 10000,
+                            name: '刷牙',
+                            days: [1, 2, 3, 4, 5, 6, 0],
+                            stars: 1,
+                            recurring: true,
+                            startWeek: this.getWeekNumber(new Date())
+                        },
+                        {
+                            id: Date.now() - 9000,
+                            name: '完成作业',
+                            days: [1, 2, 3, 4, 5],
+                            stars: 2,
+                            recurring: true,
+                            startWeek: this.getWeekNumber(new Date())
+                        },
+                        {
+                            id: Date.now() - 8000,
+                            name: '帮忙做家务',
+                            days: [6, 0],
+                            stars: 3,
+                            recurring: true,
+                            startWeek: this.getWeekNumber(new Date())
+                        }
+                    ];
+                    localStorage.setItem('weeklyTasks', JSON.stringify(demoTasks));
+                }
+                
+                if (JSON.parse(localStorage.getItem('rewards')).length === 0) {
+                    const demoRewards = [
+                        {
+                            id: Date.now() - 7000,
+                            name: '去公园玩',
+                            stars: 5,
+                            redeemed: false
+                        },
+                        {
+                            id: Date.now() - 6000,
+                            name: '买一本漫画书',
+                            stars: 10,
+                            redeemed: false
+                        },
+                        {
+                            id: Date.now() - 5000,
+                            name: '看一场电影',
+                            stars: 15,
+                            redeemed: false
+                        }
+                    ];
+                    localStorage.setItem('rewards', JSON.stringify(demoRewards));
+                }
+            },
+            
+            // 获取周数（用于判断任务是否在当前周）
+            getWeekNumber(date) {
+                const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+                const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+                return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            },
+            
+            // 获取当前日期的星期几（0是周日，1是周一...6是周六）
+            getTodayDay() {
+                const day = new Date().getDay();
+                return day; // 直接返回，因为我们的数据模型中0是周日
+            },
+            
+            // 获取今日任务
+            getTodayTasks() {
+                const today = new Date();
+                const todayDay = this.getTodayDay();
+                const currentWeek = this.getWeekNumber(today);
+                const allTasks = JSON.parse(localStorage.getItem('weeklyTasks'));
+                
+                // 过滤出今天的任务
+                return allTasks.filter(task => {
+                    // 检查任务是否包含今天，并且要么是循环任务，要么是本周的非循环任务
+                    return task.days.includes(todayDay) && 
+                           (task.recurring || task.startWeek === currentWeek);
+                });
+            },
+            
+            // 获取所有每周任务
+            getAllWeeklyTasks() {
+                const currentWeek = this.getWeekNumber(new Date());
+                return JSON.parse(localStorage.getItem('weeklyTasks')).filter(task => {
+                    return task.recurring || task.startWeek === currentWeek;
+                });
+            },
+            
+            // 添加每周任务
+            addWeeklyTask(task) {
+                const tasks = JSON.parse(localStorage.getItem('weeklyTasks'));
+                const newTask = {
+                    id: Date.now(),
+                    ...task,
+                    startWeek: this.getWeekNumber(new Date())
+                };
+                tasks.push(newTask);
+                localStorage.setItem('weeklyTasks', JSON.stringify(tasks));
+                return newTask;
+            },
+            
+            // 删除任务
+            deleteTask(taskId) {
+                let tasks = JSON.parse(localStorage.getItem('weeklyTasks'));
+                tasks = tasks.filter(task => task.id !== taskId);
+                localStorage.setItem('weeklyTasks', JSON.stringify(tasks));
+            },
+            
+            // 获取所有奖励
+            getRewards() {
+                return JSON.parse(localStorage.getItem('rewards'));
+            },
+            
+            // 添加奖励
+            addReward(reward) {
+                const rewards = JSON.parse(localStorage.getItem('rewards'));
+                const newReward = {
+                    id: Date.now(),
+                    ...reward,
+                    redeemed: false
+                };
+                rewards.push(newReward);
+                localStorage.setItem('rewards', JSON.stringify(rewards));
+                return newReward;
+            },
+            
+            // 删除奖励
+            deleteReward(rewardId) {
+                let rewards = JSON.parse(localStorage.getItem('rewards'));
+                rewards = rewards.filter(reward => reward.id !== rewardId);
+                localStorage.setItem('rewards', JSON.stringify(rewards));
+            },
+            
+            // 兑换奖励
+            redeemReward(rewardId) {
+                const rewards = JSON.parse(localStorage.getItem('rewards'));
+                const reward = rewards.find(r => r.id === rewardId);
+                
+                if (!reward || reward.redeemed) return false;
+                
+                const totalStars = parseInt(localStorage.getItem('totalStars'));
+                
+                if (totalStars < reward.stars) return false;
+                
+                // 更新奖励状态
+                reward.redeemed = true;
+                localStorage.setItem('rewards', JSON.stringify(rewards));
+                
+                // 扣除星星
+                this.addStars(-reward.stars, `兑换了${reward.name}`);
+                
+                return true;
+            },
+            
+            // 获取星星总数
+            getTotalStars() {
+                return parseInt(localStorage.getItem('totalStars'));
+            },
+            
+            // 添加星星（可以是负数，表示扣除）
+            addStars(amount, reason) {
+                let total = this.getTotalStars();
+                total += amount;
+                if (total < 0) total = 0; // 确保星星数不会为负
+                
+                localStorage.setItem('totalStars', total.toString());
+                
+                // 记录星星变动
+                const history = JSON.parse(localStorage.getItem('starsHistory'));
+                history.push({
+                    id: Date.now(),
+                    amount,
+                    reason,
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem('starsHistory', JSON.stringify(history));
+                
+                return total;
+            },
+            
+            // 获取星星记录
+            getStarsHistory() {
+                return JSON.parse(localStorage.getItem('starsHistory')).sort((a, b) => b.id - a.id);
+            },
+            
+            // 验证管理员密码
+            verifyAdminPassword(password) {
+                return password === localStorage.getItem('adminPassword');
+            }
+        };
+
+        // 应用控制器
+        const App = {
+            isAdmin: false,
+            
+            init() {
+                // 初始化数据
+                DataManager.init();
+                
+                // 初始化UI
+                this.updateStarsDisplay();
+                this.renderTodayTasks();
+                this.renderWeeklyTasks();
+                this.renderRewards();
+                this.renderStarsHistory();
+                this.setTodayDate();
+                
+                // 绑定事件
+                this.bindEvents();
+            },
+            
+            // 更新星星显示
+            updateStarsDisplay() {
+                const totalStars = DataManager.getTotalStars();
+                document.getElementById('totalStars').textContent = totalStars;
+                document.getElementById('mobileStars').textContent = totalStars;
+                document.getElementById('currentStarsDisplay').textContent = totalStars;
+                document.getElementById('newStarsCount').value = totalStars;
+            },
+            
+            // 设置今天的日期显示
+            setTodayDate() {
+                const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+                const today = new Date().toLocaleDateString('zh-CN', options);
+                document.getElementById('todayDate').textContent = today;
+            },
+            
+            // 渲染今日任务
+            renderTodayTasks() {
+                const container = document.getElementById('todayTasks');
+                const tasks = DataManager.getTodayTasks();
+                
+                if (tasks.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-12 bg-white/50 rounded-xl">
+                            <i class="fa fa-smile-o text-5xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-400">今天没有任务，好好休息吧！</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                tasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'bg-white rounded-xl shadow-md p-5 card-hover';
+                    taskElement.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-lg">${task.name}</h3>
+                                <p class="text-accent flex items-center mt-1">
+                                    <i class="fa fa-star mr-1"></i> 奖励 ${task.stars} 颗星星
+                                </p>
+                            </div>
+                            <button data-task-id="${task.id}" class="complete-task-btn bg-secondary text-white p-2 rounded-full hover:bg-secondary/90 transition-colors">
+                                <i class="fa fa-check"></i>
+                            </button>
+                        </div>
+                        ${task.recurring ? '<div class="mt-3 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full inline-block">每周循环</div>' : ''}
+                    `;
+                    container.appendChild(taskElement);
+                });
+                
+                // 绑定完成任务事件
+                document.querySelectorAll('.complete-task-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const taskId = parseInt(e.currentTarget.dataset.taskId);
+                        this.completeTask(taskId);
+                    });
+                });
+            },
+            
+            // 渲染每周任务
+            renderWeeklyTasks() {
+                const container = document.querySelector('#weekly .grid');
+                // 清除现有任务（保留表头）
+                while (container.children.length > 7) {
+                    container.removeChild(container.lastChild);
+                }
+                
+                const tasks = DataManager.getAllWeeklyTasks();
+                
+                if (tasks.length === 0) {
+                    const emptyElement = document.createElement('div');
+                    emptyElement.className = 'md:col-span-7 text-center py-8 text-gray-400';
+                    emptyElement.textContent = '暂无每周计划，请添加任务';
+                    container.appendChild(emptyElement);
+                    return;
+                }
+                
+                // 创建7个空列
+                const dayColumns = Array(7).fill().map(() => []);
+                
+                // 将任务分配到对应的列
+                tasks.forEach(task => {
+                    task.days.forEach(day => {
+                        dayColumns[day].push(task);
+                    });
+                });
+                
+                // 渲染每个列的任务
+                dayColumns.forEach((columnTasks, dayIndex) => {
+                    const columnElement = document.createElement('div');
+                    columnElement.className = 'p-2';
+                    
+                    if (columnTasks.length === 0) {
+                        columnElement.innerHTML = '<div class="h-full bg-gray-50 rounded-lg p-2 text-center text-gray-300 text-sm">无任务</div>';
+                    } else {
+                        columnElement.innerHTML = `
+                            <div class="space-y-2">
+                                ${columnTasks.map(task => `
+                                    <div class="bg-white border border-gray-100 rounded-lg p-2 shadow-sm relative">
+                                        <div class="text-sm font-medium">${task.name}</div>
+                                        <div class="text-xs text-accent flex items-center mt-1">
+                                            <i class="fa fa-star mr-1"></i> ${task.stars}
+                                        </div>
+                                        ${task.recurring ? '<div class="absolute top-1 right-1 text-xs text-gray-400">♾️</div>' : ''}
+                                        ${this.isAdmin ? `
+                                            <button data-task-id="${task.id}" class="delete-task-btn absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600 transition-colors">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
+                    
+                    container.appendChild(columnElement);
+                });
+                
+                // 绑定删除任务事件
+                if (this.isAdmin) {
+                    document.querySelectorAll('.delete-task-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const taskId = parseInt(e.currentTarget.dataset.taskId);
+                            if (confirm('确定要删除这个任务吗？')) {
+                                DataManager.deleteTask(taskId);
+                                this.renderWeeklyTasks();
+                            }
+                        });
+                    });
+                }
+            },
+            
+            // 渲染奖励列表
+            renderRewards() {
+                const container = document.getElementById('rewardsList');
+                const rewards = DataManager.getRewards();
+                
+                if (rewards.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-12 bg-white/50 rounded-xl">
+                            <i class="fa fa-gift text-5xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-400">暂无兑换奖品，请添加</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                rewards.forEach(reward => {
+                    const rewardElement = document.createElement('div');
+                    rewardElement.className = `bg-white rounded-xl shadow-md overflow-hidden card-hover ${reward.redeemed ? 'opacity-60' : ''}`;
+                    
+                    const totalStars = DataManager.getTotalStars();
+                    const canRedeem = totalStars >= reward.stars && !reward.redeemed;
+                    
+                    rewardElement.innerHTML = `
+                        <div class="h-32 bg-gradient-to-r ${reward.redeemed ? 'from-gray-300 to-gray-400' : 'from-secondary to-primary'} flex items-center justify-center">
+                            <i class="fa fa-gift text-white text-5xl"></i>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-bold text-lg mb-2">${reward.name}</h3>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center text-accent">
+                                    <i class="fa fa-star mr-1"></i>
+                                    <span>${reward.stars} 颗星星</span>
+                                </div>
+                                ${reward.redeemed ? 
+                                    '<span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">已兑换</span>' : ''
+                                }
+                            </div>
+                            
+                            <div class="mt-4 flex space-x-2">
+                                ${!reward.redeemed ? `
+                                    <button data-reward-id="${reward.id}" class="redeem-btn flex-1 ${canRedeem ? 'bg-primary' : 'bg-gray-300 cursor-not-allowed'} text-white py-2 rounded-lg hover:${canRedeem ? 'bg-primary/90' : ''} transition-colors">
+                                        兑换
+                                    </button>
+                                ` : ''}
+                                
+                                ${this.isAdmin ? `
+                                    <button data-reward-id="${reward.id}" class="delete-reward-btn ${reward.redeemed ? 'bg-gray-400' : 'bg-red-500'} text-white w-10 h-10 rounded-lg flex items-center justify-center hover:${reward.redeemed ? 'bg-gray-500' : 'bg-red-600'} transition-colors">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(rewardElement);
+                });
+                
+                // 绑定兑换事件
+                document.querySelectorAll('.redeem-btn').forEach(btn => {
+                    if (!btn.classList.contains('cursor-not-allowed')) {
+                        btn.addEventListener('click', (e) => {
+                            const rewardId = parseInt(e.currentTarget.dataset.rewardId);
+                            const success = DataManager.redeemReward(rewardId);
+                            if (success) {
+                                alert('兑换成功！');
+                                this.updateStarsDisplay();
+                                this.renderRewards();
+                                this.renderStarsHistory();
+                            } else {
+                                alert('星星不够，无法兑换！');
+                            }
+                        });
+                    }
+                });
+                
+                // 绑定删除奖励事件
+                if (this.isAdmin) {
+                    document.querySelectorAll('.delete-reward-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const rewardId = parseInt(e.currentTarget.dataset.rewardId);
+                            if (confirm('确定要删除这个奖品吗？')) {
+                                DataManager.deleteReward(rewardId);
+                                this.renderRewards();
+                            }
+                        });
+                    });
+                }
+            },
+            
+            // 渲染星星记录
+            renderStarsHistory() {
+                const container = document.getElementById('starsHistory');
+                const history = DataManager.getStarsHistory();
+                
+                if (history.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-12 text-gray-400">
+                            暂无星星记录
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                history.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = `flex justify-between items-center p-3 border-b last:border-0 ${item.amount > 0 ? 'bg-green-50' : 'bg-red-50'}`;
+                    
+                    const date = new Date(item.date);
+                    const dateStr = date.toLocaleString('zh-CN');
+                    
+                    historyItem.innerHTML = `
+                        <div>
+                            <div class="font-medium">${item.reason}</div>
+                            <div class="text-sm text-gray-500">${dateStr}</div>
+                        </div>
+                        <div class="${item.amount > 0 ? 'text-green-600' : 'text-red-600'} font-bold">
+                            ${item.amount > 0 ? '+' : ''}${item.amount}
+                        </div>
+                    `;
+                    
+                    container.appendChild(historyItem);
+                });
+            },
+            
+            // 完成任务
+            completeTask(taskId) {
+                const allTasks = JSON.parse(localStorage.getItem('weeklyTasks'));
+                const task = allTasks.find(t => t.id === taskId);
+                
+                if (!task) return;
+                
+                // 添加星星
+                DataManager.addStars(task.stars, `完成了任务：${task.name}`);
+                
+                // 显示庆祝动画
+                const celebration = document.getElementById('celebration');
+                celebration.classList.remove('hidden');
+                setTimeout(() => {
+                    celebration.classList.add('hidden');
+                }, 1000);
+                
+                // 更新UI
+                this.updateStarsDisplay();
+                this.renderTodayTasks();
+                this.renderStarsHistory();
+                
+                // 提示
+                alert(`恭喜！获得了 ${task.stars} 颗星星！`);
+            },
+            
+            // 切换管理员模式
+            toggleAdminMode(enabled) {
+                this.isAdmin = enabled;
+                
+                // 显示/隐藏管理员操作按钮
+                document.querySelectorAll('.admin-action').forEach(el => {
+                    el.classList.toggle('hidden', !enabled);
+                });
+                
+                // 重新渲染需要管理员权限的部分
+                this.renderWeeklyTasks();
+                this.renderRewards();
+            },
+            
+            // 绑定所有事件
+            bindEvents() {
+                // 移动端菜单切换
+                document.getElementById('menuToggle').addEventListener('click', () => {
+                    document.getElementById('mobileMenu').classList.toggle('hidden');
+                });
+                
+                // 管理员登录相关
+                document.getElementById('adminBtn').addEventListener('click', () => {
+                    document.getElementById('adminModal').classList.remove('hidden');
+                    document.getElementById('adminPassword').focus();
+                });
+                
+                document.getElementById('mobileAdminBtn').addEventListener('click', () => {
+                    document.getElementById('mobileMenu').classList.add('hidden');
+                    document.getElementById('adminModal').classList.remove('hidden');
+                    document.getElementById('adminPassword').focus();
+                });
+                
+                document.getElementById('closeAdminModalBtn').addEventListener('click', () => {
+                    document.getElementById('adminModal').classList.add('hidden');
+                    document.getElementById('adminPassword').value = '';
+                    document.getElementById('adminError').classList.add('hidden');
+                });
+                
+                document.getElementById('loginAdminBtn').addEventListener('click', () => {
+                    const password = document.getElementById('adminPassword').value;
+                    if (DataManager.verifyAdminPassword(password)) {
+                        this.toggleAdminMode(true);
+                        document.getElementById('adminModal').classList.add('hidden');
+                        document.getElementById('adminPassword').value = '';
+                        document.getElementById('adminError').classList.add('hidden');
+                        alert('管理员登录成功');
+                    } else {
+                        document.getElementById('adminError').classList.remove('hidden');
+                    }
+                });
+                
+                // 添加任务相关
+                document.getElementById('addWeeklyTaskBtn').addEventListener('click', () => {
+                    document.getElementById('addTaskModal').classList.remove('hidden');
+                    document.getElementById('taskName').focus();
+                });
+                
+                document.getElementById('closeTaskModalBtn').addEventListener('click', () => {
+                    document.getElementById('addTaskModal').classList.add('hidden');
+                    document.getElementById('taskName').value = '';
+                    document.querySelectorAll('input[name="taskDays"]').forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    document.getElementById('taskStars').value = 1;
+                    document.getElementById('taskRecurring').checked = true;
+                });
+                
+                document.getElementById('saveTaskBtn').addEventListener('click', () => {
+                    const name = document.getElementById('taskName').value.trim();
+                    const days = Array.from(document.querySelectorAll('input[name="taskDays"]:checked')).map(checkbox => parseInt(checkbox.value));
+                    const stars = parseInt(document.getElementById('taskStars').value);
+                    const recurring = document.getElementById('taskRecurring').checked;
+                    
+                    if (!name || days.length === 0 || isNaN(stars) || stars < 1) {
+                        alert('请填写完整的任务信息');
+                        return;
+                    }
+                    
+                    DataManager.addWeeklyTask({ name, days, stars, recurring });
+                    
+                    document.getElementById('addTaskModal').classList.add('hidden');
+                    this.renderWeeklyTasks();
+                    this.renderTodayTasks();
+                    
+                    // 重置表单
+                    document.getElementById('taskName').value = '';
+                    document.querySelectorAll('input[name="taskDays"]').forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    document.getElementById('taskStars').value = 1;
+                });
+                
+                // 添加奖励相关
+                document.getElementById('addRewardBtn').addEventListener('click', () => {
+                    document.getElementById('addRewardModal').classList.remove('hidden');
+                    document.getElementById('rewardName').focus();
+                });
+                
+                document.getElementById('closeRewardModalBtn').addEventListener('click', () => {
+                    document.getElementById('addRewardModal').classList.add('hidden');
+                    document.getElementById('rewardName').value = '';
+                    document.getElementById('rewardStars').value = 5;
+                });
+                
+                document.getElementById('saveRewardBtn').addEventListener('click', () => {
+                    const name = document.getElementById('rewardName').value.trim();
+                    const stars = parseInt(document.getElementById('rewardStars').value);
+                    
+                    if (!name || isNaN(stars) || stars < 1) {
+                        alert('请填写完整的奖品信息');
+                        return;
+                    }
+                    
+                    DataManager.addReward({ name, stars });
+                    
+                    document.getElementById('addRewardModal').classList.add('hidden');
+                    this.renderRewards();
+                    
+                    // 重置表单
+                    document.getElementById('rewardName').value = '';
+                    document.getElementById('rewardStars').value = 5;
+                });
+                
+                // 调整星星相关
+                document.getElementById('totalStars').addEventListener('click', () => {
+                    if (this.isAdmin) {
+                        document.getElementById('adjustStarsModal').classList.remove('hidden');
+                    }
+                });
+                
+                document.getElementById('closeStarsAdjustModalBtn').addEventListener('click', () => {
+                    document.getElementById('adjustStarsModal').classList.add('hidden');
+                    document.getElementById('starsAdjustReason').value = '';
+                });
+                
+                document.getElementById('saveStarsAdjustBtn').addEventListener('click', () => {
+                    const newCount = parseInt(document.getElementById('newStarsCount').value);
+                    const reason = document.getElementById('starsAdjustReason').value.trim() || '管理员调整';
+                    
+                    if (isNaN(newCount) || newCount < 0) {
+                        alert('请输入有效的星星数量');
+                        return;
+                    }
+                    
+                    const currentCount = DataManager.getTotalStars();
+                    const difference = newCount - currentCount;
+                    
+                    if (difference !== 0) {
+                        DataManager.addStars(difference, reason);
+                        this.updateStarsDisplay();
+                        this.renderStarsHistory();
+                    }
+                    
+                    document.getElementById('adjustStarsModal').classList.add('hidden');
+                    document.getElementById('starsAdjustReason').value = '';
+                });
+                
+                // 导航栏滚动效果
+                window.addEventListener('scroll', () => {
+                    const nav = document.getElementById('mainNav');
+                    if (window.scrollY > 10) {
+                        nav.classList.add('py-2', 'shadow-lg');
+                        nav.classList.remove('py-3', 'shadow-md');
+                    } else {
+                        nav.classList.add('py-3', 'shadow-md');
+                        nav.classList.remove('py-2', 'shadow-lg');
+                    }
+                });
+                
+                // 平滑滚动
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const targetId = this.getAttribute('href');
+                        const targetElement = document.querySelector(targetId);
+                        
+                        if (targetElement) {
+                            window.scrollTo({
+                                top: targetElement.offsetTop - 80,
+                                behavior: 'smooth'
+                            });
+                            
+                            // 关闭移动菜单
+                            document.getElementById('mobileMenu').classList.add('hidden');
+                        }
+                    });
+                });
+            }
+        };
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+        });
+    </script>
+</body>
+</html>
