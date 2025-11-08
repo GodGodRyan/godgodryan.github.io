@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小朋友的每日计划</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#FF6B8B', // 粉色主色调
+            secondary: '#4ADE80', // 绿色辅助色
+            accent: '#FACC15', // 黄色强调色
+            neutral: '#F3F4F6', // 背景色
+          },
+          fontFamily: {
+            comic: ['Comic Sans MS', 'cursive', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .card-shadow {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      }
+      .bounce-effect {
+        transition: transform 0.3s ease;
+      }
+      .bounce-effect:hover {
+        transform: translateY(-5px);
+      }
+    }
+  </style>
+</head>
+<body class="font-comic bg-gradient-to-br from-pink-50 to-green-50 min-h-screen">
+  <!-- 导航栏 -->
+  <nav class="bg-white/80 backdrop-blur-sm shadow-md fixed w-full top-0 z-50 transition-all duration-300">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-star text-accent text-2xl animate-pulse"></i>
+        <h1 class="text-xl md:text-2xl font-bold text-primary">小小计划家</h1>
+      </div>
+      
+      <div class="hidden md:flex items-center space-x-6">
+        <button id="nav-tasks" class="nav-btn text-gray-700 hover:text-primary transition-colors">
+          <i class="fa fa-list-ul mr-1"></i> 今日任务
+        </button>
+        <button id="nav-rewards" class="nav-btn text-gray-700 hover:text-primary transition-colors">
+          <i class="fa fa-gift mr-1"></i> 兑换奖励
+        </button>
+        <button id="nav-history" class="nav-btn text-gray-700 hover:text-primary transition-colors">
+          <i class="fa fa-history mr-1"></i> 星星记录
+        </button>
+        <button id="nav-admin" class="nav-btn text-gray-700 hover:text-primary transition-colors">
+          <i class="fa fa-lock mr-1"></i> 管理员
+        </button>
+      </div>
+      
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center bg-yellow-100 px-3 py-1 rounded-full">
+          <i class="fa fa-star text-accent mr-1"></i>
+          <span id="star-count" class="font-bold">0</span>
+        </div>
+        <button id="mobile-menu-btn" class="md:hidden text-gray-700">
+          <i class="fa fa-bars text-xl"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 移动端菜单 -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+      <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+        <button id="mobile-nav-tasks" class="py-2 text-left text-gray-700 hover:text-primary transition-colors">
+          <i class="fa fa-list-ul mr-2"></i> 今日任务
+        </button>
+        <button id="mobile-nav-rewards" class="py-2 text-left text-gray-700 hover:text-primary transition-colors">
+          <i class="fa fa-gift mr-2"></i> 兑换奖励
+        </button>
+        <button id="mobile-nav-history" class="py-2 text-left text-gray-700 hover:text-primary transition-colors">
+          <i class="fa fa-history mr-2"></i> 星星记录
+        </button>
+        <button id="mobile-nav-admin" class="py-2 text-left text-gray-700 hover:text-primary transition-colors">
+          <i class="fa fa-lock mr-2"></i> 管理员
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 pt-24 pb-16">
+    <!-- 今日任务页面 -->
+    <section id="tasks-page" class="page-content">
+      <div class="bg-white rounded-2xl p-6 mb-8 card-shadow">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-primary flex items-center">
+            <i class="fa fa-calendar-check-o mr-2"></i>
+            <span id="current-date">2023年11月7日 星期二</span>
+          </h2>
+          <span id="week-indicator" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+            第45周
+          </span>
+        </div>
+        
+        <div id="today-tasks" class="space-y-4">
+          <!-- 任务将通过JS动态生成 -->
+          <div class="text-center py-10 text-gray-500">
+            <i class="fa fa-calendar-o text-4xl mb-3"></i>
+            <p>今天还没有任务哦！</p>
+            <p class="text-sm mt-1">请让管理员添加任务吧~</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 兑换奖励页面 -->
+    <section id="rewards-page" class="page-content hidden">
+      <div class="bg-white rounded-2xl p-6 mb-8 card-shadow">
+        <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+          <i class="fa fa-gift mr-2"></i> 星星兑换奖励
+        </h2>
+        
+        <div id="rewards-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- 奖励将通过JS动态生成 -->
+          <div class="text-center py-10 text-gray-500 col-span-full">
+            <i class="fa fa-gift text-4xl mb-3"></i>
+            <p>还没有可以兑换的奖励呢</p>
+            <p class="text-sm mt-1">请让管理员添加奖励吧~</p>
+          </div>
+        </div>
+        
+        <!-- 管理员添加奖励按钮 -->
+        <div id="add-reward-btn-container" class="mt-6 hidden">
+          <button id="add-reward-btn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-full flex items-center mx-auto transition-colors">
+            <i class="fa fa-plus mr-2"></i> 添加新奖励
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 星星记录页面 -->
+    <section id="history-page" class="page-content hidden">
+      <div class="bg-white rounded-2xl p-6 mb-8 card-shadow">
+        <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+          <i class="fa fa-history mr-2"></i> 星星记录
+        </h2>
+        
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="py-3 px-4 text-left">日期</th>
+                <th class="py-3 px-4 text-left">原因</th>
+                <th class="py-3 px-4 text-center">星星变化</th>
+              </tr>
+            </thead>
+            <tbody id="stars-history">
+              <!-- 记录将通过JS动态生成 -->
+              <tr>
+                <td colspan="3" class="py-10 text-center text-gray-500">
+                  还没有星星记录哦
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 管理员页面 -->
+    <section id="admin-page" class="page-content hidden">
+      <!-- 管理员登录 -->
+      <div id="admin-login" class="bg-white rounded-2xl p-8 max-w-md mx-auto card-shadow">
+        <h2 class="text-2xl font-bold text-primary mb-6 text-center flex items-center justify-center">
+          <i class="fa fa-lock mr-2"></i> 管理员登录
+        </h2>
+        
+        <div class="mb-4">
+          <label for="admin-password" class="block text-gray-700 mb-2">请输入管理员密码</label>
+          <input type="password" id="admin-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="输入密码">
+        </div>
+        
+        <button id="login-btn" class="w-full bg-primary hover:bg-primary/90 text-white py-2 rounded-lg transition-colors">
+          登录
+        </button>
+        
+        <p id="login-error" class="text-red-500 text-center mt-4 hidden">密码错误，请重试</p>
+      </div>
+      
+      <!-- 管理员功能区 (默认隐藏) -->
+      <div id="admin-functions" class="hidden">
+        <div class="bg-white rounded-2xl p-6 mb-8 card-shadow">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-primary flex items-center">
+              <i class="fa fa-cogs mr-2"></i> 管理员功能
+            </h2>
+            <button id="logout-btn" class="text-gray-600 hover:text-red-500 transition-colors">
+              <i class="fa fa-sign-out mr-1"></i> 退出登录
+            </button>
+          </div>
+          
+          <!-- 调整星星数量 -->
+          <div class="mb-8 p-4 bg-gray-50 rounded-xl">
+            <h3 class="text-xl font-bold text-gray-700 mb-4">调整星星数量</h3>
+            <div class="flex items-center space-x-4">
+              <input type="number" id="star-adjustment" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="输入数量">
+              <button id="add-stars-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fa fa-plus mr-1"></i> 增加
+              </button>
+              <button id="subtract-stars-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fa fa-minus mr-1"></i> 减少
+              </button>
+            </div>
+            <div class="mt-3">
+              <label for="adjustment-reason" class="block text-gray-700 mb-1 text-sm">原因</label>
+              <input type="text" id="adjustment-reason" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="例如：表现特别好">
+            </div>
+          </div>
+          
+          <!-- 周计划管理 -->
+          <div class="mb-8">
+            <h3 class="text-xl font-bold text-gray-700 mb-4">周计划管理</h3>
+            
+            <div class="mb-4 flex items-center space-x-4">
+              <label for="week-selector" class="text-gray-700">选择周：</label>
+              <input type="week" id="week-selector" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            
+            <!-- 星期任务表格 -->
+            <div class="overflow-x-auto">
+              <table class="min-w-full bg-white">
+                <thead>
+                  <tr class="bg-gray-100">
+                    <th class="py-3 px-4 text-left">星期</th>
+                    <th class="py-3 px-4 text-left">任务</th>
+                    <th class="py-3 px-4 text-center">星星奖励</th>
+                    <th class="py-3 px-4 text-center">每周重复</th>
+                    <th class="py-3 px-4 text-center">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="py-3 px-4 border-b">周一</td>
+                    <td class="py-3 px-4 border-b">
+                      <input type="text" class="task-name w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary" placeholder="输入任务">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <select class="task-stars px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <input type="checkbox" class="task-recurring rounded text-primary focus:ring-primary">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <button class="add-task-btn bg-primary hover:bg-primary/90 text-white p-2 rounded transition-colors">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <!-- 周二到周日的行结构与周一相同 -->
+                  <tr>
+                    <td class="py-3 px-4 border-b">周二</td>
+                    <td class="py-3 px-4 border-b">
+                      <input type="text" class="task-name w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary" placeholder="输入任务">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <select class="task-stars px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <input type="checkbox" class="task-recurring rounded text-primary focus:ring-primary">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <button class="add-task-btn bg-primary hover:bg-primary/90 text-white p-2 rounded transition-colors">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 border-b">周三</td>
+                    <td class="py-3 px-4 border-b">
+                      <input type="text" class="task-name w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary" placeholder="输入任务">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <select class="task-stars px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <input type="checkbox" class="task-recurring rounded text-primary focus:ring-primary">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <button class="add-task-btn bg-primary hover:bg-primary/90 text-white p-2 rounded transition-colors">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 border-b">周四</td>
+                    <td class="py-3 px-4 border-b">
+                      <input type="text" class="task-name w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary" placeholder="输入任务">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <select class="task-stars px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <input type="checkbox" class="task-recurring rounded text-primary focus:ring-primary">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <button class="add-task-btn bg-primary hover:bg-primary/90 text-white p-2 rounded transition-colors">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 border-b">周五</td>
+                    <td class="py-3 px-4 border-b">
+                      <input type="text" class="task-name w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary" placeholder="输入任务">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <select class="task-stars px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <input type="checkbox" class="task-recurring rounded text-primary focus:ring-primary">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <button class="add-task-btn bg-primary hover:bg-primary/90 text-white p-2 rounded transition-colors">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 border-b">周六</td>
+                    <td class="py-3 px-4 border-b">
+                      <input type="text" class="task-name w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary" placeholder="输入任务">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <select class="task-stars px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <input type="checkbox" class="task-recurring rounded text-primary focus:ring-primary">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <button class="add-task-btn bg-primary hover:bg-primary/90 text-white p-2 rounded transition-colors">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 border-b">周日</td>
+                    <td class="py-3 px-4 border-b">
+                      <input type="text" class="task-name w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary" placeholder="输入任务">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <select class="task-stars px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <input type="checkbox" class="task-recurring rounded text-primary focus:ring-primary">
+                    </td>
+                    <td class="py-3 px-4 border-b text-center">
+                      <button class="add-task-btn bg-primary hover:bg-primary/90 text-white p-2 rounded transition-colors">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- 已添加的任务列表 -->
+            <div class="mt-6">
+              <h4 class="font-bold text-gray-700 mb-3">当前周已添加的任务</h4>
+              <div id="current-week-tasks" class="space-y-2">
+                <!-- 已添加的任务将通过JS动态生成 -->
+                <div class="text-center py-4 text-gray-500 text-sm">
+                  该周暂无任务
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 添加兑换奖励 -->
+          <div>
+            <h3 class="text-xl font-bold text-gray-700 mb-4">添加兑换奖励</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="reward-name" class="block text-gray-700 mb-2">奖励名称</label>
+                <input type="text" id="reward-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="例如：一次游乐园之旅">
+              </div>
+              
+              <div>
+                <label for="reward-stars" class="block text-gray-700 mb-2">所需星星数量</label>
+                <input type="number" id="reward-stars" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="例如：10" min="1">
+              </div>
+              
+              <div class="md:col-span-2">
+                <label for="reward-description" class="block text-gray-700 mb-2">奖励描述（可选）</label>
+                <textarea id="reward-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="描述一下这个奖励..."></textarea>
+              </div>
+            </div>
+            
+            <button id="save-reward-btn" class="mt-4 bg-secondary hover:bg-secondary/90 text-white px-6 py-2 rounded-lg transition-colors">
+              保存奖励
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 模态框 -->
+  <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 card-shadow transform transition-all">
+      <h3 id="modal-title" class="text-xl font-bold text-primary mb-4"></h3>
+      <div id="modal-content" class="mb-6"></div>
+      <div class="flex justify-end space-x-3">
+        <button id="modal-cancel" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+          取消
+        </button>
+        <button id="modal-confirm" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+          确认
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 星星动画元素 -->
+  <div id="star-animation-container" class="fixed inset-0 pointer-events-none z-40"></div>
+
+  <script>
+    // 数据管理
+    const DataManager = {
+      // 初始化数据
+      init() {
+        // 检查本地存储中是否有数据，没有则初始化
+        if (!localStorage.getItem('tasks')) {
+          localStorage.setItem('tasks', JSON.stringify([]));
+        }
+        
+        if (!localStorage.getItem('rewards')) {
+          localStorage.setItem('rewards', JSON.stringify([]));
+        }
+        
+        if (!localStorage.getItem('starHistory')) {
+          localStorage.setItem('starHistory', JSON.stringify([]));
+        }
+        
+        if (!localStorage.getItem('totalStars')) {
+          localStorage.setItem('totalStars', '0');
+        }
+        
+        // 初始管理员密码为 'admin'（实际使用中应该加密存储）
+        if (!localStorage.getItem('adminPassword')) {
+          localStorage.setItem('adminPassword', 'admin');
+        }
+      },
+      
+      // 任务相关
+      getTasks() {
+        return JSON.parse(localStorage.getItem('tasks') || '[]');
+      },
+      
+      saveTask(task) {
+        const tasks = this.getTasks();
+        tasks.push({
+          id: Date.now().toString(), // 使用时间戳作为唯一ID
+          ...task
+        });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        return tasks;
+      },
+      
+      deleteTask(id) {
+        let tasks = this.getTasks();
+        tasks = tasks.filter(task => task.id !== id);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        return tasks;
+      },
+      
+      completeTask(id, date) {
+        const tasks = this.getTasks();
+        const taskIndex = tasks.findIndex(task => task.id === id);
+        
+        if (taskIndex !== -1) {
+          // 确保completedDates数组存在
+          if (!tasks[taskIndex].completedDates) {
+            tasks[taskIndex].completedDates = [];
+          }
+          
+          // 检查任务是否已完成
+          if (!tasks[taskIndex].completedDates.includes(date)) {
+            tasks[taskIndex].completedDates.push(date);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            return true; // 任务标记为完成
+          }
+        }
+        
+        return false; // 任务已完成或不存在
+      },
+      
+      // 奖励相关
+      getRewards() {
+        return JSON.parse(localStorage.getItem('rewards') || '[]');
+      },
+      
+      saveReward(reward) {
+        const rewards = this.getRewards();
+        rewards.push({
+          id: Date.now().toString(),
+          ...reward
+        });
+        localStorage.setItem('rewards', JSON.stringify(rewards));
+        return rewards;
+      },
+      
+      deleteReward(id) {
+        let rewards = this.getRewards();
+        rewards = rewards.filter(reward => reward.id !== id);
+        localStorage.setItem('rewards', JSON.stringify(rewards));
+        return rewards;
+      },
+      
+      // 星星相关
+      getTotalStars() {
+        return parseInt(localStorage.getItem('totalStars') || '0');
+      },
+      
+      addStars(amount, reason) {
+        const total = this.getTotalStars() + amount;
+        localStorage.setItem('totalStars', total.toString());
+        
+        // 记录星星变化
+        this.addStarHistory('earn', amount, reason);
+        return total;
+      },
+      
+      spendStars(amount, reason) {
+        const total = this.getTotalStars();
+        
+        if (total >= amount) {
+          localStorage.setItem('totalStars', (total - amount).toString());
+          this.addStarHistory('spend', -amount, reason);
+          return total - amount;
+        }
+        
+        return -1; // 星星不足
+      },
+      
+      adjustStars(amount, reason) {
+        const total = this.getTotalStars() + amount;
+        localStorage.setItem('totalStars', total.toString());
+        this.addStarHistory('adjust', amount, reason);
+        return total;
+      },
+      
+      // 星星记录相关
+      getStarHistory() {
+        return JSON.parse(localStorage.getItem('starHistory') || '[]');
+      },
+      
+      addStarHistory(type, amount, reason) {
+        const history = this.getStarHistory();
+        history.push({
+          id: Date.now().toString(),
+          type,
+          amount,
+          reason,
+          date: new Date().toISOString().split('T')[0] // YYYY-MM-DD
+        });
+        localStorage.setItem('starHistory', JSON.stringify(history));
+        return history;
+      },
+      
+      // 管理员相关
+      checkAdminPassword(password) {
+        return password === localStorage.getItem('adminPassword');
+      },
+      
+      setAdminPassword(newPassword) {
+        localStorage.setItem('adminPassword', newPassword);
+      }
+    };
+
+    // 工具函数
+    const Utils = {
+      // 获取当前日期的格式化字符串
+      getCurrentDate() {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const weekday = weekdays[date.getDay()];
+        
+        return `${year}年${month}月${day}日 ${weekday}`;
+      },
+      
+      // 获取当前日期的ISO格式 (YYYY-MM-DD)
+      getCurrentISODate() {
+        return new Date().toISOString().split('T')[0];
+      },
+      
+      // 获取当前周的ISO格式 (YYYY-Www)
+      getCurrentISOWeek() {
+        const date = new Date();
+        const year = date.getFullYear();
+        
+        // 计算当前是第几周
+        const firstDayOfYear = new Date(year, 0, 1);
+        const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+        
+        // 计算当前周数，考虑第一天是周一
+        return `W${Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)}`;
+      },
+      
+      // 获取当前完整的ISO周格式 (YYYY-Www)
+      getCurrentFullISOWeek() {
+        return `${new Date().getFullYear()}-${this.getCurrentISOWeek()}`;
+      },
+      
+      // 将日期转换为对应的星期几数字 (0-6, 0是周日)
+      getWeekdayNumber(dateString) {
+        const date = new Date(dateString);
+        return date.getDay();
+      },
+      
+      // 将星期几数字转换为名称
+      getWeekdayName(weekdayNumber) {
+        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        return weekdays[weekdayNumber];
+      },
+      
+      // 生成星星动画
+      createStarAnimation(x, y) {
+        const container = document.getElementById('star-animation-container');
+        const star = document.createElement('div');
+        
+        star.innerHTML = '<i class="fa fa-star text-accent"></i>';
+        star.className = 'absolute text-2xl';
+        star.style.left = `${x}px`;
+        star.style.top = `${y}px`;
+        star.style.opacity = '0';
+        
+        container.appendChild(star);
+        
+        // 动画效果
+        setTimeout(() => {
+          star.style.transition = 'all 0.8s ease-out';
+          star.style.opacity = '1';
+          star.style.transform = `translateY(-50px) rotate(360deg)`;
+          star.style.fontSize = '32px';
+        }, 10);
+        
+        // 动画结束后移除元素
+        setTimeout(() => {
+          star.style.opacity = '0';
+          setTimeout(() => {
+            container.removeChild(star);
+          }, 300);
+        }, 800);
+      }
+    };
+
+    // 页面控制器
+    const PageController = {
+      // 初始化页面
+      init() {
+        // 初始化数据
+        DataManager.init();
+        
+        // 更新星星数量显示
+        this.updateStarCount();
+        
+        // 设置当前日期
+        document.getElementById('current-date').textContent = Utils.getCurrentDate();
+        document.getElementById('week-indicator').textContent = `第${Utils.getCurrentISOWeek().replace('W', '')}周`;
+        
+        // 设置当前周选择器
+        document.getElementById('week-selector').value = Utils.getCurrentFullISOWeek();
+        
+        // 加载今日任务
+        this.loadTodayTasks();
+        
+        // 加载奖励列表
+        this.loadRewards();
+        
+        // 加载星星记录
+        this.loadStarHistory();
+        
+        // 加载当前周任务
+        this.loadCurrentWeekTasks();
+        
+        // 绑定事件
+        this.bindEvents();
+      },
+      
+      // 绑定所有事件
+      bindEvents() {
+        // 导航事件
+        document.getElementById('nav-tasks').addEventListener('click', () => this.showPage('tasks-page'));
+        document.getElementById('nav-rewards').addEventListener('click', () => this.showPage('rewards-page'));
+        document.getElementById('nav-history').addEventListener('click', () => this.showPage('history-page'));
+        document.getElementById('nav-admin').addEventListener('click', () => this.showPage('admin-page'));
+        
+        // 移动端导航事件
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+          const mobileMenu = document.getElementById('mobile-menu');
+          mobileMenu.classList.toggle('hidden');
+        });
+        
+        document.getElementById('mobile-nav-tasks').addEventListener('click', () => {
+          this.showPage('tasks-page');
+          document.getElementById('mobile-menu').classList.add('hidden');
+        });
+        
+        document.getElementById('mobile-nav-rewards').addEventListener('click', () => {
+          this.showPage('rewards-page');
+          document.getElementById('mobile-menu').classList.add('hidden');
+        });
+        
+        document.getElementById('mobile-nav-history').addEventListener('click', () => {
+          this.showPage('history-page');
+          document.getElementById('mobile-menu').classList.add('hidden');
+        });
+        
+        document.getElementById('mobile-nav-admin').addEventListener('click', () => {
+          this.showPage('admin-page');
+          document.getElementById('mobile-menu').classList.add('hidden');
+        });
+        
+        // 管理员登录
+        document.getElementById('login-btn').addEventListener('click', () => this.handleAdminLogin());
+        
+        // 管理员登出
+        document.getElementById('logout-btn').addEventListener('click', () => this.handleAdminLogout());
+        
+        // 添加任务按钮
+        document.querySelectorAll('.add-task-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => this.handleAddTask(e));
+        });
+        
+        // 周选择器变化
+        document.getElementById('week-selector').addEventListener('change', () => this.loadCurrentWeekTasks());
+        
+        // 保存奖励按钮
+        document.getElementById('save-reward-btn').addEventListener('click', () => this.handleSaveReward());
+        
+        // 添加星星按钮
+        document.getElementById('add-stars-btn').addEventListener('click', () => this.handleAdjustStars(true));
+        
+        // 减少星星按钮
+        document.getElementById('subtract-stars-btn').addEventListener('click', () => this.handleAdjustStars(false));
+        
+        // 添加奖励按钮
+        document.getElementById('add-reward-btn').addEventListener('click', () => this.showPage('admin-page'));
+        
+        // 模态框事件
+        document.getElementById('modal-cancel').addEventListener('click', () => this.hideModal());
+        document.getElementById('modal-confirm').addEventListener('click', () => this.handleModalConfirm());
+      },
+      
+      // 显示指定页面
+      showPage(pageId) {
+        // 隐藏所有页面
+        document.querySelectorAll('.page-content').forEach(page => {
+          page.classList.add('hidden');
+        });
+        
+        // 显示选中页面
+        document.getElementById(pageId).classList.remove('hidden');
+        
+        // 高亮当前导航
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.classList.remove('text-primary', 'font-bold');
+          btn.classList.add('text-gray-700');
+        });
+        
+        if (pageId === 'tasks-page') {
+          document.getElementById('nav-tasks').classList.remove('text-gray-700');
+          document.getElementById('nav-tasks').classList.add('text-primary', 'font-bold');
+        } else if (pageId === 'rewards-page') {
+          document.getElementById('nav-rewards').classList.remove('text-gray-700');
+          document.getElementById('nav-rewards').classList.add('text-primary', 'font-bold');
+          
+          // 检查是否管理员登录，显示添加奖励按钮
+          if (this.isAdminLoggedIn()) {
+            document.getElementById('add-reward-btn-container').classList.remove('hidden');
+          } else {
+            document.getElementById('add-reward-btn-container').classList.add('hidden');
+          }
+        } else if (pageId === 'history-page') {
+          document.getElementById('nav-history').classList.remove('text-gray-700');
+          document.getElementById('nav-history').classList.add('text-primary', 'font-bold');
+        } else if (pageId === 'admin-page') {
+          document.getElementById('nav-admin').classList.remove('text-gray-700');
+          document.getElementById('nav-admin').classList.add('text-primary', 'font-bold');
+        }
+      },
+      
+      // 更新星星数量显示
+      updateStarCount() {
+        const count = DataManager.getTotalStars();
+        document.getElementById('star-count').textContent = count;
+      },
+      
+      // 加载今日任务
+      loadTodayTasks() {
+        const today = Utils.getCurrentISODate();
+        const todayWeekday = Utils.getWeekdayNumber(today);
+        const currentWeek = Utils.getCurrentFullISOWeek();
+        const tasks = DataManager.getTasks();
+        
+        const todayTasksContainer = document.getElementById('today-tasks');
+        todayTasksContainer.innerHTML = '';
+        
+        // 筛选今日任务
+        const relevantTasks = tasks.filter(task => {
+          // 任务是今天的，并且要么是循环任务，要么是在当前周
+          return task.day === todayWeekday && 
+                 (task.isRecurring || (task.startWeek === currentWeek));
+        });
+        
+        if (relevantTasks.length === 0) {
+          todayTasksContainer.innerHTML = `
+            <div class="text-center py-10 text-gray-500">
+              <i class="fa fa-calendar-o text-4xl mb-3"></i>
+              <p>今天还没有任务哦！</p>
+              <p class="text-sm mt-1">请让管理员添加任务吧~</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // 添加任务到页面
+        relevantTasks.forEach(task => {
+          const isCompleted = task.completedDates && task.completedDates.includes(today);
+          
+          const taskElement = document.createElement('div');
+          taskElement.className = `flex items-center p-4 rounded-xl border ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'} card-shadow bounce-effect`;
+          taskElement.innerHTML = `
+            <div class="mr-4">
+              <input type="checkbox" id="task-${task.id}" class="task-checkbox w-6 h-6 rounded text-primary focus:ring-primary" ${isCompleted ? 'checked disabled' : ''}>
+            </div>
+            <div class="flex-1">
+              <label for="task-${task.id}" class="${isCompleted ? 'line-through text-gray-500' : ''}">${task.name}</label>
+            </div>
+            <div class="flex items-center bg-yellow-100 px-3 py-1 rounded-full">
+              <i class="fa fa-star text-accent mr-1"></i>
+              <span>${task.stars}</span>
+            </div>
+          `;
+          
+          todayTasksContainer.appendChild(taskElement);
+          
+          // 绑定任务完成事件
+          if (!isCompleted) {
+            const checkbox = taskElement.querySelector('.task-checkbox');
+            checkbox.addEventListener('change', (e) => {
+              if (e.target.checked) {
+                this.handleTaskCompletion(task.id, task.name, task.stars);
+              }
+            });
+          }
+        });
+      },
+      
+      // 处理任务完成
+      handleTaskCompletion(taskId, taskName, stars) {
+        const today = Utils.getCurrentISODate();
+        const success = DataManager.completeTask(taskId, today);
+        
+        if (success) {
+          // 添加星星
+          DataManager.addStars(stars, `完成任务：${taskName}`);
+          this.updateStarCount();
+          this.loadStarHistory();
+          
+          // 重新加载今日任务
+          this.loadTodayTasks();
+          
+          // 创建星星动画
+          const checkboxRect = event.target.getBoundingClientRect();
+          const x = checkboxRect.left + checkboxRect.width / 2;
+          const y = checkboxRect.top + checkboxRect.height / 2;
+          Utils.createStarAnimation(x, y);
+        }
+      },
+      
+      // 加载奖励列表
+      loadRewards() {
+        const rewards = DataManager.getRewards();
+        const rewardsContainer = document.getElementById('rewards-list');
+        rewardsContainer.innerHTML = '';
+        
+        if (rewards.length === 0) {
+          rewardsContainer.innerHTML = `
+            <div class="text-center py-10 text-gray-500 col-span-full">
+              <i class="fa fa-gift text-4xl mb-3"></i>
+              <p>还没有可以兑换的奖励呢</p>
+              <p class="text-sm mt-1">请让管理员添加奖励吧~</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // 添加奖励到页面
+        rewards.forEach(reward => {
+          const rewardElement = document.createElement('div');
+          rewardElement.className = 'bg-white border border-gray-200 rounded-xl p-4 card-shadow bounce-effect';
+          
+          let adminActions = '';
+          if (this.isAdminLoggedIn()) {
+            adminActions = `
+              <button class="delete-reward-btn text-red-500 hover:text-red-700 mt-2" data-id="${reward.id}">
+                <i class="fa fa-trash mr-1"></i> 删除
+              </button>
+            `;
+          }
+          
+          rewardElement.innerHTML = `
+            <h3 class="font-bold text-lg mb-2">${reward.name}</h3>
+            ${reward.description ? `<p class="text-gray-600 text-sm mb-3">${reward.description}</p>` : ''}
+            <div class="flex justify-between items-center">
+              <div class="flex items-center bg-yellow-100 px-3 py-1 rounded-full">
+                <i class="fa fa-star text-accent mr-1"></i>
+                <span>${reward.stars}</span>
+              </div>
+              <button class="redeem-btn bg-secondary hover:bg-secondary/90 text-white px-3 py-1 rounded-full text-sm transition-colors" data-id="${reward.id}">
+                兑换
+              </button>
+            </div>
+            ${adminActions}
+          `;
+          
+          rewardsContainer.appendChild(rewardElement);
+        });
+        
+        // 绑定兑换事件
+        document.querySelectorAll('.redeem-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const rewardId = e.target.closest('.redeem-btn').dataset.id;
+            this.handleRedeemReward(rewardId);
+          });
+        });
+        
+        // 绑定删除奖励事件（管理员）
+        document.querySelectorAll('.delete-reward-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const rewardId = e.target.closest('.delete-reward-btn').dataset.id;
+            this.handleDeleteReward(rewardId);
+          });
+        });
+      },
+      
+      // 处理奖励兑换
+      handleRedeemReward(rewardId) {
+        const rewards = DataManager.getRewards();
+        const reward = rewards.find(r => r.id === rewardId);
+        
+        if (!reward) return;
+        
+        const totalStars = DataManager.getTotalStars();
+        
+        if (totalStars >= reward.stars) {
+          // 显示确认对话框
+          this.showModal(
+            '确认兑换',
+            `确定要用 ${reward.stars} 颗星星兑换 ${reward.name} 吗？`,
+            () => {
+              const newTotal = DataManager.spendStars(reward.stars, `兑换奖励：${reward.name}`);
+              
+              if (newTotal !== -1) {
+                this.updateStarCount();
+                this.loadStarHistory();
+                this.loadRewards();
+                
+                // 显示成功消息
+                this.showModal(
+                  '兑换成功',
+                  `恭喜你成功兑换了 ${reward.name}！`,
+                  () => this.hideModal()
+                );
+              }
+            }
+          );
+        } else {
+          this.showModal(
+            '星星不足',
+            `你的星星不够哦！还需要 ${reward.stars - totalStars} 颗星星才能兑换 ${reward.name}。`,
+            () => this.hideModal()
+          );
+        }
+      },
+      
+      // 处理删除奖励
+      handleDeleteReward(rewardId) {
+        const rewards = DataManager.getRewards();
+        const reward = rewards.find(r => r.id === rewardId);
+        
+        if (!reward) return;
+        
+        this.showModal(
+          '确认删除',
+          `确定要删除奖励 "${reward.name}" 吗？`,
+          () => {
+            DataManager.deleteReward(rewardId);
+            this.loadRewards();
+            this.hideModal();
+          }
+        );
+      },
+      
+      // 加载星星记录
+      loadStarHistory() {
+        const history = DataManager.getStarHistory();
+        const historyContainer = document.getElementById('stars-history');
+        historyContainer.innerHTML = '';
+        
+        if (history.length === 0) {
+          historyContainer.innerHTML = `
+            <tr>
+              <td colspan="3" class="py-10 text-center text-gray-500">
+                还没有星星记录哦
+              </td>
+            </tr>
+          `;
+          return;
+        }
+        
+        // 按日期倒序排列
+        const sortedHistory = [...history].sort((a, b) => 
+          new Date(b.date) - new Date(a.date)
+        );
+        
+        // 添加记录到页面
+        sortedHistory.forEach(record => {
+          const row = document.createElement('tr');
+          row.className = 'border-b hover:bg-gray-50';
+          
+          let amountClass = 'text-green-600';
+          if (record.amount < 0) {
+            amountClass = 'text-red-600';
+          } else if (record.type === 'adjust') {
+            amountClass = 'text-blue-600';
+          }
+          
+          const amountText = record.amount >= 0 ? `+${record.amount}` : record.amount;
+          
+          row.innerHTML = `
+            <td class="py-3 px-4">${record.date}</td>
+            <td class="py-3 px-4">${record.reason}</td>
+            <td class="py-3 px-4 text-center ${amountClass} font-bold">${amountText}</td>
+          `;
+          
+          historyContainer.appendChild(row);
+        });
+      },
+      
+      // 管理员登录
+      handleAdminLogin() {
+        const password = document.getElementById('admin-password').value;
+        
+        if (DataManager.checkAdminPassword(password)) {
+          // 登录成功
+          localStorage.setItem('adminLoggedIn', 'true');
+          document.getElementById('admin-login').classList.add('hidden');
+          document.getElementById('admin-functions').classList.remove('hidden');
+          document.getElementById('login-error').classList.add('hidden');
+          
+          // 刷新奖励页面的添加按钮状态
+          this.loadRewards();
+        } else {
+          // 登录失败
+          document.getElementById('login-error').classList.remove('hidden');
+        }
+      },
+      
+      // 管理员登出
+      handleAdminLogout() {
+        localStorage.removeItem('adminLoggedIn');
+        document.getElementById('admin-login').classList.remove('hidden');
+        document.getElementById('admin-functions').classList.add('hidden');
+        
+        // 刷新奖励页面的添加按钮状态
+        this.loadRewards();
+      },
+      
+      // 检查管理员是否登录
+      isAdminLoggedIn() {
+        return localStorage.getItem('adminLoggedIn') === 'true';
+      },
+      
+      // 处理添加任务
+      handleAddTask(event) {
+        const row = event.target.closest('tr');
+        const taskName = row.querySelector('.task-name').value.trim();
+        const taskStars = parseInt(row.querySelector('.task-stars').value);
+        const isRecurring = row.querySelector('.task-recurring').checked;
+        const weekdayCell = row.querySelector('td:first-child');
+        const weekdayName = weekdayCell.textContent;
+        
+        // 星期几映射 (0-6, 0是周日)
+        const weekdayMap = {
+          '周日': 0,
+          '周一': 1,
+          '周二': 2,
+          '周三': 3,
+          '周四': 4,
+          '周五': 5,
+          '周六': 6
+        };
+        
+        const day = weekdayMap[weekdayName];
+        const selectedWeek = document.getElementById('week-selector').value;
+        
+        if (!taskName) {
+          this.showModal(
+            '输入错误',
+            '请输入任务名称',
+            () => this.hideModal()
+          );
+          return;
+        }
+        
+        // 保存任务
+        DataManager.saveTask({
+          name: taskName,
+          day,
+          stars: taskStars,
+          isRecurring,
+          startWeek: selectedWeek,
+          endWeek: isRecurring ? null : selectedWeek,
+          completedDates: []
+        });
+        
+        // 清空输入框
+        row.querySelector('.task-name').value = '';
+        
+        // 重新加载当前周任务
+        this.loadCurrentWeekTasks();
+        
+        // 显示成功消息
+        this.showModal(
+          '添加成功',
+          `已成功添加任务：${taskName}`,
+          () => this.hideModal()
+        );
+      },
+      
+      // 加载当前周的任务
+      loadCurrentWeekTasks() {
+        const selectedWeek = document.getElementById('week-selector').value;
+        const tasks = DataManager.getTasks();
+        
+        const container = document.getElementById('current-week-tasks');
+        container.innerHTML = '';
+        
+        // 筛选当前周的任务
+        const weekTasks = tasks.filter(task => {
+          return task.startWeek === selectedWeek || 
+                 (task.isRecurring && task.startWeek <= selectedWeek);
+        });
+        
+        if (weekTasks.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-4 text-gray-500 text-sm">
+              该周暂无任务
+            </div>
+          `;
+          return;
+        }
+        
+        // 按星期几排序
+        weekTasks.sort((a, b) => a.day - b.day);
+        
+        // 添加任务到页面
+        weekTasks.forEach(task => {
+          const taskElement = document.createElement('div');
+          taskElement.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-lg';
+          
+          taskElement.innerHTML = `
+            <div>
+              <span class="font-medium">${Utils.getWeekdayName(task.day)}</span>: 
+              <span>${task.name}</span>
+              <span class="ml-2 bg-yellow-100 px-2 py-0.5 rounded text-sm">
+                <i class="fa fa-star text-accent mr-1"></i>${task.stars}
+              </span>
+              ${task.isRecurring ? '<span class="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">每周重复</span>' : ''}
+            </div>
+            <button class="delete-task-btn text-red-500 hover:text-red-700" data-id="${task.id}">
+              <i class="fa fa-trash"></i>
+            </button>
+          `;
+          
+          container.appendChild(taskElement);
+        });
+        
+        // 绑定删除任务事件
+        document.querySelectorAll('.delete-task-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const taskId = e.target.closest('.delete-task-btn').dataset.id;
+            this.handleDeleteTask(taskId);
+          });
+        });
+      },
+      
+      // 处理删除任务
+      handleDeleteTask(taskId) {
+        const tasks = DataManager.getTasks();
+        const task = tasks.find(t => t.id === taskId);
+        
+        if (!task) return;
+        
+        this.showModal(
+          '确认删除',
+          `确定要删除任务 "${task.name}" 吗？`,
+          () => {
+            DataManager.deleteTask(taskId);
+            this.loadCurrentWeekTasks();
+            this.loadTodayTasks(); // 也刷新今日任务
+            this.hideModal();
+          }
+        );
+      },
+      
+      // 处理保存奖励
+      handleSaveReward() {
+        const name = document.getElementById('reward-name').value.trim();
+        const stars = parseInt(document.getElementById('reward-stars').value);
+        const description = document.getElementById('reward-description').value.trim();
+        
+        if (!name || isNaN(stars) || stars < 1) {
+          this.showModal(
+            '输入错误',
+            '请输入有效的奖励名称和星星数量（至少1颗）',
+            () => this.hideModal()
+          );
+          return;
+        }
+        
+        // 保存奖励
+        DataManager.saveReward({
+          name,
+          stars,
+          description
+        });
+        
+        // 清空输入框
+        document.getElementById('reward-name').value = '';
+        document.getElementById('reward-stars').value = '';
+        document.getElementById('reward-description').value = '';
+        
+        // 重新加载奖励列表
+        this.loadRewards();
+        
+        // 显示成功消息
+        this.showModal(
+          '添加成功',
+          `已成功添加奖励：${name}`,
+          () => this.hideModal()
+        );
+      },
+      
+      // 处理调整星星数量
+      handleAdjustStars(isAdd) {
+        const amount = parseInt(document.getElementById('star-adjustment').value);
+        const reason = document.getElementById('adjustment-reason').value.trim() || 
+                      (isAdd ? '管理员增加星星' : '管理员减少星星');
+        
+        if (isNaN(amount) || amount <= 0) {
+          this.showModal(
+            '输入错误',
+            '请输入有效的数量（正数）',
+            () => this.hideModal()
+          );
+          return;
+        }
+        
+        const actualAmount = isAdd ? amount : -amount;
+        
+        // 调整星星
+        DataManager.adjustStars(actualAmount, reason);
+        
+        // 清空输入框
+        document.getElementById('star-adjustment').value = '';
+        document.getElementById('adjustment-reason').value = '';
+        
+        // 更新显示
+        this.updateStarCount();
+        this.loadStarHistory();
+        
+        // 显示成功消息
+        this.showModal(
+          '调整成功',
+          `已成功${isAdd ? '增加' : '减少'} ${amount} 颗星星`,
+          () => this.hideModal()
+        );
+      },
+      
+      // 显示模态框
+      showModal(title, content, confirmCallback) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-content').innerHTML = content;
+        document.getElementById('modal').classList.remove('hidden');
+        
+        // 存储确认回调
+        this.modalConfirmCallback = confirmCallback;
+      },
+      
+      // 隐藏模态框
+      hideModal() {
+        document.getElementById('modal').classList.add('hidden');
+        this.modalConfirmCallback = null;
+      },
+      
+      // 处理模态框确认
+      handleModalConfirm() {
+        if (this.modalConfirmCallback) {
+          this.modalConfirmCallback();
+        }
+      }
+    };
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      PageController.init();
+    });
+  </script>
+</body>
+</html>
